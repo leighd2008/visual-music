@@ -13,68 +13,67 @@
 
 ************************************************************/
 
-import React from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import classes from './Visualizer.module.scss';
 import P5Wrapper from 'react-p5-wrapper';
-import sketch from '../../vendor/sketches/sketch';
+import sketch from '../../vendor/sketch';
 import Measure from 'react-measure';
 
-class Visualizer extends React.Component {
-    constructor(props) {
-        super(props);
+const Visualizer = React.memo(props => {
+    const [canvasWidth, setCanvasWidth] = useState(100);
+    const [canvasHeight, setCanvasHeight] = useState(100);
+    const isFullSize = useSelector(state => state.fullSize.isFullSize);
 
-        this.state = {
-            sketch,
-            canvasWidth: 100,
-            canvasHeight: 100
-        };
-    }
-
-    onResize = content => {
+    const onResize = content => {
         const { width, height, left, top } = content;
         const cWidth = width - left;
         const cHeight = height - top;
-        this.setState({ canvasWidth: cWidth, canvasHeight: cHeight });
+        setCanvasWidth(cWidth);
+        setCanvasHeight(cHeight);
     };
 
-    render() {
-        const {
-            volume,
-            playPressed,
-            uploadedSong,
-            audioRef,
-            downloadVisual,
-            blob
-        } = this.props;
-        const { sketch, canvasWidth, canvasHeight } = this.state;
+    const {
+        volume,
+        takeScreenshot,
+        currentTime,
+        playPressed,
+        uploadedSong,
+        downloadVisual,
+        blob
+    } = props;
 
-        return (
-            <Measure
-                offset
-                onResize={content => {
-                    this.onResize(content.offset);
-                }}
-            >
-                {({ measureRef }) => (
-                    <div ref={measureRef} className={classes.visualizer}>
-                        <P5Wrapper
-                            sketch={sketch}
-                            volume={volume}
-                            playPressed={playPressed}
-                            uploadedSong={uploadedSong}
-                            canvasWidth={canvasWidth}
-                            canvasHeight={canvasHeight}
-                            audioRef={audioRef}
-                            downloadVisual={downloadVisual}
-                            blob={blob}
-                            dispatch={useDispatch()}
-                        />
-                    </div>
-                )}
-            </Measure>
-        );
-    }
-}
+    return (
+        <Measure
+            offset
+            onResize={content => {
+                onResize(content.offset);
+            }}
+        >
+            {({ measureRef }) => (
+                <div
+                    ref={measureRef}
+                    className={`${classes.visualizer} ${isFullSize &&
+                        classes.fullSize}`}
+                >
+                    <P5Wrapper
+                        sketch={sketch}
+                        playPressed={playPressed}
+                        volume={volume}
+                        takeScreenshot={takeScreenshot}
+                        uploadedSong={uploadedSong}
+                        canvasWidth={canvasWidth}
+                        canvasHeight={canvasHeight}
+                        downloadVisual={downloadVisual}
+                        blob={blob}
+                        currentTime={currentTime}
+                        dispatch={useDispatch()}
+                        isFullSize={isFullSize}
+                    />
+                </div>
+            )}
+        </Measure>
+    );
+});
 
 export default Visualizer;
